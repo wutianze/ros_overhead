@@ -59,16 +59,34 @@ fstream writer;
 	    (((uint64_t)((uint8_t)(ptr)[6])) << 8) +  \
 	    (((uint64_t)(uint8_t)(ptr)[7]))
 
+#define PUT32(ptr, u)                                        \
+	do {                                                 \
+		(ptr)[0] = (uint8_t)(((uint32_t)(u)) >> 24); \
+		(ptr)[1] = (uint8_t)(((uint32_t)(u)) >> 16); \
+		(ptr)[2] = (uint8_t)(((uint32_t)(u)) >> 8); \
+		(ptr)[3] = (uint8_t)(((uint32_t)(u))); \
+	} while (0)
+
+#define GET32(ptr, v)                                 \
+	v = (((uint32_t)((uint8_t)(ptr)[0])) << 24) + \
+	    (((uint32_t)((uint8_t)(ptr)[1])) << 16) + \
+	    (((uint32_t)((uint8_t)(ptr)[2])) << 8) + \
+	    (((uint32_t)((uint8_t)(ptr)[3])))
+
+
 char* putMsg(uint64_t timestamp, uint32_t size){
 char* result = new char[size+sizeof(timestamp)+sizeof(size)];
 PUT64(result,timestamp);
-result[sizeof(timestamp)]=size;
+char* size_place = result+sizeof(timestamp);
+PUT32(size_place,size);
 return result;
 }
 
 void getMsg(char*msg, uint64_t& timestamp, uint32_t& size){
 GET64(msg,timestamp);
-size = (uint32_t)(msg[sizeof(timestamp)]);
+char* size_place = msg+sizeof(uint64_t);
+GET32(size_place,size);
+//size = (uint32_t)(msg[sizeof(timestamp)]);
 return;
 }
 void
