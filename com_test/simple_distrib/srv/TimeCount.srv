@@ -1,0 +1,7 @@
+std_msgs/Header header
+int64 id
+string content
+---
+std_msgs/Header header
+int64 id
+string content

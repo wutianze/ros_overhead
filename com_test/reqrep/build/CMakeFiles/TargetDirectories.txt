@@ -1,0 +1,3 @@
+/home/sauron/nng/demo/reqrep/build/CMakeFiles/edit_cache.dir
+/home/sauron/nng/demo/reqrep/build/CMakeFiles/rebuild_cache.dir
+/home/sauron/nng/demo/reqrep/build/CMakeFiles/reqrep.dir
