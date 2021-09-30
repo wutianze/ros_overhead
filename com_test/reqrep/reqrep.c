@@ -74,12 +74,11 @@ fstream writer;
 	    (((uint32_t)((uint8_t)(ptr)[3])))
 
 
-char* putMsg(uint64_t timestamp, uint32_t size){
-char* result = new char[size+sizeof(timestamp)+sizeof(size)];
+void putMsg(char* result,uint64_t timestamp, uint32_t size){
 PUT64(result,timestamp);
 char* size_place = result+sizeof(timestamp);
 PUT32(size_place,size);
-return result;
+return;
 }
 
 void getMsg(char*msg, uint64_t& timestamp, uint32_t& size){
@@ -164,11 +163,10 @@ client(const char *url,uint32_t msgSize,int countMax)
 	int        rv;
 	size_t     sz;
 	char *     buf = NULL;
-	uint8_t    cmd[sizeof(uint64_t)];
+	char* msg_send = new char[msgSize+sizeof(uint64_t)+sizeof(uint32_t)];
 	int        sleep = 0;
 	int count = 0;
 
-	//PUT64(cmd, DATECMD);
 
 	if ((rv = nng_req0_open(&sock)) != 0) {
 		fatal("nng_socket", rv);
@@ -194,14 +192,12 @@ client(const char *url,uint32_t msgSize,int countMax)
 
 	nng_dialer_start(dialer, NNG_FLAG_NONBLOCK);
 
+	int send_size = sizeof(uint64_t)+sizeof(uint32_t)+msgSize;
 	while (count<=countMax) {
 		count++;
 
-		printf("CLIENT: SENDING DATE REQUEST\n");
-	int send_size = sizeof(uint64_t)+sizeof(uint32_t)+msgSize;
-		uint64_t time_send =std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch()).count();
-	//PUT64(cmd, time_send);
-	char* msg_send = putMsg(time_send,send_size);
+		uint64_t time_send =std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+	putMsg(msg_send,time_send,send_size);
 		if ((rv = nng_send(sock, msg_send,send_size , 0))!=0){
 			fatal("nng_send", rv);
 				}
@@ -210,25 +206,23 @@ client(const char *url,uint32_t msgSize,int countMax)
 
 		}
 
-		uint64_t time_recv =std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch()).count();
+		uint64_t time_recv =std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
 		if (sz ==send_size ) {
 			uint64_t time_get;
 			uint32_t size_get;
 			//GET64(buf, time_get);
 			getMsg(buf,time_get,size_get);
-			printf("CLIENT: RECEIVED DATE: ");
 			//cout<<"time_send:"<<time_send<<endl;
 			//cout<<"time_recv:"<<time_recv<<endl;
 			writer<<time_recv-time_send<<endl;
 		} else {
 			printf("CLIENT: GOT WRONG SIZE!\n");
 		}
-		nng_msleep(sleep);
-		//sleep++;
 	}
 	writer.close();
 
 	// This assumes that buf is ASCIIZ (zero terminated).
+		delete[] msg_send;
 	nng_free(buf, sz);
 	nng_close(sock);
 	return (0);
