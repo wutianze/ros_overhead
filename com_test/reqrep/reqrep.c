@@ -239,6 +239,7 @@ main(const int argc, const char **argv)
 	if ((argc > 1) && (strcmp(SERVER, argv[1]) == 0))
 		return (server(argv[2]));
 
-	fprintf(stderr, "Usage: reqrep %s|%s <URL> ...\n", CLIENT, SERVER);
+	fprintf(stderr, "Usage: reqrep %s <URL> <Msg Size> <Count Max>\n", CLIENT);
+	fprintf(stderr, "Usage: reqrep %s <URL>\n", SERVER);
 	return (1);
 }
